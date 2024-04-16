@@ -1,2 +1,2 @@
 streamlit==0.90.0
-psd-tools==1.9.16
+psd_tools==1.9.16
