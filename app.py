@@ -47,7 +47,7 @@ def extract_parts_from_group(group, output_dir):
     return group_info
 
 st.title("PSD Importer Prototype")
-st.caption("This extracts visible layers, converts all non-images to PNG, outputs text, and tells us the location on the canvas for each exported part")
+st.caption("This extracts visible layers, converts all non-text to PNG, outputs text, and tells us the location on the canvas for each exported part")
 
 uploaded_file = st.file_uploader("Upload a PSD file", type=["psd"])
 
