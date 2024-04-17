@@ -75,6 +75,7 @@ if uploaded_file is not None:
         st.write(f"Name: {layer['name']}")
         st.write(f"Bounding Box: {layer['bbox']}")
         st.write(f"Kind: {layer['kind']}")
-        if layer['kind'] == 'type':
-            st.write(f"Text: {layer['text']}")
-        st.write("")
+    if layer['kind'] == 'type':
+        st.write(f"Text: {layer['text']}")
+    st.write(f"Order: {layer['order']}")  # Print layer order
+    st.write("")
