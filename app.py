@@ -14,20 +14,9 @@ def separate_parts(psd_file):
                 group_info = extract_parts_from_group(layer, output_dir)
                 layer_info.extend(group_info)
             else:
-                # Extracting bounding box coordinates
-                bbox = layer.bbox
-                print("Bounding box:", bbox)
-                # Calculating location (x, y) of top right corner
-                x = bbox[1][0]
-                y = bbox[0][1]
-                # Calculating height and width
-                height = bbox[1][1] - bbox[0][1]
-                width = bbox[1][0] - bbox[0][0]
                 layer_info.append({
                     'name': layer.name,
-                    'location': (x, y),
-                    'height': height,
-                    'width': width,
+                    'bbox': layer.bbox,
                     'kind': layer.kind,
                     'text': layer.text if layer.kind == 'type' else None
                 })
@@ -45,20 +34,9 @@ def extract_parts_from_group(group, output_dir):
                 subgroup_info = extract_parts_from_group(layer, output_dir)
                 group_info.extend(subgroup_info)
             else:
-                # Extracting bounding box coordinates
-                bbox = layer.bbox
-                print("Bounding box:", bbox)
-                # Calculating location (x, y) of top right corner
-                x = bbox[1][0]
-                y = bbox[0][1]
-                # Calculating height and width
-                height = bbox[1][1] - bbox[0][1]
-                width = bbox[1][0] - bbox[0][0]
                 group_info.append({
                     'name': f'{group.name}_part_{i}',
-                    'location': (x, y),
-                    'height': height,
-                    'width': width,
+                    'bbox': layer.bbox,
                     'kind': layer.kind,
                     'text': layer.text if layer.kind == 'type' else None
                 })
@@ -87,9 +65,7 @@ if uploaded_file is not None:
     st.write("Layer Information:")
     for layer in layer_info:
         st.write(f"Name: {layer['name']}")
-        st.write(f"Location: {layer['location']}")
-        st.write(f"Height: {layer['height']} pixels")
-        st.write(f"Width: {layer['width']} pixels")
+        st.write(f"Bounding Box: {layer['bbox']}")
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
