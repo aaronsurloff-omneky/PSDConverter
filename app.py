@@ -14,12 +14,15 @@ def separate_parts(psd_file):
                 group_info = extract_parts_from_group(layer, output_dir)
                 layer_info.extend(group_info)
             else:
-                # Calculate location (x, y) of top right corner
-                x = layer.bbox[0][1]
-                y = layer.bbox[0][0]
-                # Calculate height and width
-                height = layer.bbox[1][1] - layer.bbox[0][1]
-                width = layer.bbox[1][0] - layer.bbox[0][0]
+                # Extracting bounding box coordinates
+                top_left = layer.bbox[0]
+                bottom_right = layer.bbox[1]
+                # Calculating location (x, y) of top right corner
+                x = bottom_right[0]
+                y = top_left[1]
+                # Calculating height and width
+                height = bottom_right[1] - top_left[1]
+                width = bottom_right[0] - top_left[0]
                 layer_info.append({
                     'name': layer.name,
                     'location': (x, y),
@@ -42,12 +45,15 @@ def extract_parts_from_group(group, output_dir):
                 subgroup_info = extract_parts_from_group(layer, output_dir)
                 group_info.extend(subgroup_info)
             else:
-                # Calculate location (x, y) of top right corner
-                x = layer.bbox[0][1]
-                y = layer.bbox[0][0]
-                # Calculate height and width
-                height = layer.bbox[1][1] - layer.bbox[0][1]
-                width = layer.bbox[1][0] - layer.bbox[0][0]
+                # Extracting bounding box coordinates
+                top_left = layer.bbox[0]
+                bottom_right = layer.bbox[1]
+                # Calculating location (x, y) of top right corner
+                x = bottom_right[0]
+                y = top_left[1]
+                # Calculating height and width
+                height = bottom_right[1] - top_left[1]
+                width = bottom_right[0] - top_left[0]
                 group_info.append({
                     'name': f'{group.name}_part_{i}',
                     'location': (x, y),
