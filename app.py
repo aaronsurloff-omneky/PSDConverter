@@ -15,14 +15,14 @@ def separate_parts(psd_file):
                 layer_info.extend(group_info)
             else:
                 # Extracting bounding box coordinates
-                top_left = layer.bbox[0]
-                bottom_right = layer.bbox[1]
+                bbox = layer.bbox
+                print("Bounding box:", bbox)
                 # Calculating location (x, y) of top right corner
-                x = bottom_right[0]
-                y = top_left[1]
+                x = bbox[1][0]
+                y = bbox[0][1]
                 # Calculating height and width
-                height = bottom_right[1] - top_left[1]
-                width = bottom_right[0] - top_left[0]
+                height = bbox[1][1] - bbox[0][1]
+                width = bbox[1][0] - bbox[0][0]
                 layer_info.append({
                     'name': layer.name,
                     'location': (x, y),
@@ -46,14 +46,14 @@ def extract_parts_from_group(group, output_dir):
                 group_info.extend(subgroup_info)
             else:
                 # Extracting bounding box coordinates
-                top_left = layer.bbox[0]
-                bottom_right = layer.bbox[1]
+                bbox = layer.bbox
+                print("Bounding box:", bbox)
                 # Calculating location (x, y) of top right corner
-                x = bottom_right[0]
-                y = top_left[1]
+                x = bbox[1][0]
+                y = bbox[0][1]
                 # Calculating height and width
-                height = bottom_right[1] - top_left[1]
-                width = bottom_right[0] - top_left[0]
+                height = bbox[1][1] - bbox[0][1]
+                width = bbox[1][0] - bbox[0][0]
                 group_info.append({
                     'name': f'{group.name}_part_{i}',
                     'location': (x, y),
