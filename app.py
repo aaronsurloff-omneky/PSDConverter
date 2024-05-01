@@ -95,6 +95,5 @@ if uploaded_file is not None:
             st.write(f"Leading: {layer['leading']}")
             st.write(f"Tracking: {layer['tracking']}")
             st.write(f"Font List: {layer['font_list']}")
-            st.write(f"Font Colors: {layer['font_colors']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
