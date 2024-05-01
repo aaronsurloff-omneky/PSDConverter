@@ -27,7 +27,8 @@ def separate_parts(psd_file):
                         'alignment': None,
                         'leading': None,
                         'tracking': None,
-                        'font_list': None
+                        'font_colors': [],
+                        'font_list': []
                     }
                     
                     if hasattr(layer, 'engine_dict'):
@@ -36,17 +37,11 @@ def separate_parts(psd_file):
                         text_info['tracking'] = layer.engine_dict.get('Tracking', None)
                     
                     if hasattr(layer, 'resource_dict'):
-                        font_list = layer.resource_dict.get('FontSet', None)
-                        if font_list:
-                            font_info = []
-                            for font in font_list:
-                                font_info.append({
-                                    'Name': font['Name'],
-                                    'Script': font['Script'],
-                                    'FontType': font['FontType'],
-                                    'Synthetic': font['Synthetic']
-                                })
-                            text_info['font_list'] = font_info
+                        text_info['font_list'] = layer.resource_dict.get('FontSet', [])
+                    
+                    if hasattr(layer, 'text_data'):
+                        for style in layer.text_data.styles:
+                            text_info['font_colors'].append(style.color)
                     
                     layer_info.append(text_info)
 
@@ -74,7 +69,8 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'alignment': None,
                         'leading': None,
                         'tracking': None,
-                        'font_list': None
+                        'font_colors': [],
+                        'font_list': []
                     }
                     
                     if hasattr(layer, 'engine_dict'):
@@ -83,17 +79,11 @@ def extract_parts_from_group(group, output_dir, group_order):
                         text_info['tracking'] = layer.engine_dict.get('Tracking', None)
                     
                     if hasattr(layer, 'resource_dict'):
-                        font_list = layer.resource_dict.get('FontSet', None)
-                        if font_list:
-                            font_info = []
-                            for font in font_list:
-                                font_info.append({
-                                    'Name': font['Name'],
-                                    'Script': font['Script'],
-                                    'FontType': font['FontType'],
-                                    'Synthetic': font['Synthetic']
-                                })
-                            text_info['font_list'] = font_info
+                        text_info['font_list'] = layer.resource_dict.get('FontSet', [])
+                    
+                    if hasattr(layer, 'text_data'):
+                        for style in layer.text_data.styles:
+                            text_info['font_colors'].append(style.color)
                     
                     group_info.append(text_info)
 
@@ -127,11 +117,10 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
-            st.write("Font List:")
-            for font in layer['font_list']:
-                st.write(f"- Name: {font['Name']}, Script: {font['Script']}, Font Type: {font['FontType']}, Synthetic: {font['Synthetic']}")
             st.write(f"Alignment: {layer['alignment']}")
             st.write(f"Leading: {layer['leading']}")
             st.write(f"Tracking: {layer['tracking']}")
+            st.write(f"Font List: {layer['font_list']}")
+            st.write(f"Font Colors: {layer['font_colors']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
