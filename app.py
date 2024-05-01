@@ -24,24 +24,12 @@ def separate_parts(psd_file):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
-                        'alignment': None,
-                        'leading': None,
-                        'tracking': None,
-                        'font_colors': [],
-                        'font_list': []
+                        'alignment': layer.engine_dict.get('Justification', None),
+                        'leading': layer.engine_dict.get('Leading', None),
+                        'tracking': layer.engine_dict.get('Tracking', None),
+                        'font_colors': [style.color for style in layer.text_data.styles],
+                        'font_list': layer.resource_dict.get('FontSet', [])
                     }
-                    
-                    if hasattr(layer, 'engine_dict'):
-                        text_info['alignment'] = layer.engine_dict.get('Justification', None)
-                        text_info['leading'] = layer.engine_dict.get('Leading', None)
-                        text_info['tracking'] = layer.engine_dict.get('Tracking', None)
-                    
-                    if hasattr(layer, 'resource_dict'):
-                        text_info['font_list'] = layer.resource_dict.get('FontSet', [])
-                    
-                    if hasattr(layer, 'text_data'):
-                        for style in layer.text_data.styles:
-                            text_info['font_colors'].append(style.color)
                     
                     layer_info.append(text_info)
 
@@ -66,24 +54,12 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': group_order,  # Add group order
-                        'alignment': None,
-                        'leading': None,
-                        'tracking': None,
-                        'font_colors': [],
-                        'font_list': []
+                        'alignment': layer.engine_dict.get('Justification', None),
+                        'leading': layer.engine_dict.get('Leading', None),
+                        'tracking': layer.engine_dict.get('Tracking', None),
+                        'font_colors': [style.color for style in layer.text_data.styles],
+                        'font_list': layer.resource_dict.get('FontSet', [])
                     }
-                    
-                    if hasattr(layer, 'engine_dict'):
-                        text_info['alignment'] = layer.engine_dict.get('Justification', None)
-                        text_info['leading'] = layer.engine_dict.get('Leading', None)
-                        text_info['tracking'] = layer.engine_dict.get('Tracking', None)
-                    
-                    if hasattr(layer, 'resource_dict'):
-                        text_info['font_list'] = layer.resource_dict.get('FontSet', [])
-                    
-                    if hasattr(layer, 'text_data'):
-                        for style in layer.text_data.styles:
-                            text_info['font_colors'].append(style.color)
                     
                     group_info.append(text_info)
 
