@@ -22,7 +22,10 @@ def separate_parts(psd_file):
                     'bbox': layer.bbox,
                     'kind': layer.kind,
                     'text': layer.text if layer.kind == 'type' else None,
-                    'order': layer_order  # Add layer order
+                    'order': layer_order,  # Add layer order
+                    'alignment': layer.text.engine_dict.get('Justification', None) if layer.kind == 'type' else None,
+                    'leading': layer.text.engine_dict.get('Leading', None) if layer.kind == 'type' else None,
+                    'tracking': layer.text.engine_dict.get('Tracking', None) if layer.kind == 'type' else None
                 })
 
                 img = layer.composite()
@@ -44,7 +47,10 @@ def extract_parts_from_group(group, output_dir, group_order):
                     'bbox': layer.bbox,
                     'kind': layer.kind,
                     'text': layer.text if layer.kind == 'type' else None,
-                    'order': group_order  # Add group order
+                    'order': group_order,  # Add group order
+                    'alignment': layer.text.engine_dict.get('Justification', None) if layer.kind == 'type' else None,
+                    'leading': layer.text.engine_dict.get('Leading', None) if layer.kind == 'type' else None,
+                    'tracking': layer.text.engine_dict.get('Tracking', None) if layer.kind == 'type' else None
                 })
 
                 img = layer.composite()
@@ -77,5 +83,9 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
+            st.write(f"Horizontal Alignment: {layer['alignment'].get('Justification')}")  # Output horizontal alignment
+            st.write(f"Vertical Alignment: {layer['alignment'].get('VerticalJustification')}")  # Output vertical alignment
+            st.write(f"Leading: {layer['leading']}")  # Output leading
+            st.write(f"Tracking: {layer['tracking']}")  # Output tracking
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
