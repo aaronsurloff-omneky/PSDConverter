@@ -36,7 +36,17 @@ def separate_parts(psd_file):
                         text_info['tracking'] = layer.engine_dict.get('Tracking', None)
                     
                     if hasattr(layer, 'resource_dict'):
-                        text_info['font_list'] = layer.resource_dict.get('FontSet', None)
+                        font_list = layer.resource_dict.get('FontSet', None)
+                        if font_list:
+                            font_info = []
+                            for font in font_list:
+                                font_info.append({
+                                    'Name': font['Name'],
+                                    'Script': font['Script'],
+                                    'FontType': font['FontType'],
+                                    'Synthetic': font['Synthetic']
+                                })
+                            text_info['font_list'] = font_info
                     
                     layer_info.append(text_info)
 
@@ -73,7 +83,17 @@ def extract_parts_from_group(group, output_dir, group_order):
                         text_info['tracking'] = layer.engine_dict.get('Tracking', None)
                     
                     if hasattr(layer, 'resource_dict'):
-                        text_info['font_list'] = layer.resource_dict.get('FontSet', None)
+                        font_list = layer.resource_dict.get('FontSet', None)
+                        if font_list:
+                            font_info = []
+                            for font in font_list:
+                                font_info.append({
+                                    'Name': font['Name'],
+                                    'Script': font['Script'],
+                                    'FontType': font['FontType'],
+                                    'Synthetic': font['Synthetic']
+                                })
+                            text_info['font_list'] = font_info
                     
                     group_info.append(text_info)
 
@@ -107,9 +127,11 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
+            st.write("Font List:")
+            for font in layer['font_list']:
+                st.write(f"- Name: {font['Name']}, Script: {font['Script']}, Font Type: {font['FontType']}, Synthetic: {font['Synthetic']}")
             st.write(f"Alignment: {layer['alignment']}")
             st.write(f"Leading: {layer['leading']}")
             st.write(f"Tracking: {layer['tracking']}")
-            st.write(f"Font List: {layer['font_list']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
