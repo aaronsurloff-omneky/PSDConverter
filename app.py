@@ -25,8 +25,7 @@ def separate_parts(psd_file):
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
                         'alignment': layer.engine_dict.get('Justification', None),
-                        'leading': layer.engine_dict.get('Leading', None),
-                        'tracking': layer.engine_dict.get('StyleRun', None),
+                        'style_sheet': layer.engine_dict.get('StyleRun', None),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
@@ -54,8 +53,7 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'text': layer.text,
                         'order': group_order,  # Add group order
                         'alignment': layer.engine_dict.get('Justification', None),
-                        'leading': layer.engine_dict.get('Leading', None),
-                        'tracking': layer.engine_dict.get('StyleRun', None),
+                        'style_sheet': layer.engine_dict.get('StyleRun', None),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
@@ -92,8 +90,7 @@ if uploaded_file is not None:
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
             st.write(f"Alignment: {layer['alignment']}")
-            st.write(f"Leading: {layer['leading']}")
-            st.write(f"Tracking: {layer['tracking']}")
+            st.write(f"StyleRun: {layer['style_sheet']}")
             st.write(f"Font List: {layer['font_list']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
