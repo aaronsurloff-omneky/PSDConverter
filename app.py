@@ -27,7 +27,6 @@ def separate_parts(psd_file):
                         'alignment': layer.engine_dict.get('Justification', None),
                         'leading': layer.engine_dict.get('Leading', None),
                         'tracking': layer.engine_dict.get('Tracking', None),
-                        'font_colors': [style.color for style in layer.text_data.styles],
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
