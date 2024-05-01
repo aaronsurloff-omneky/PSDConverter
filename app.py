@@ -17,13 +17,28 @@ def separate_parts(psd_file):
                 layer_info.extend(group_info)
                 layer_order = group_order  # Update layer order after processing group
             else:
-                layer_info.append({
-                    'name': layer.name,
-                    'bbox': layer.bbox,
-                    'kind': layer.kind,
-                    'text': layer.text if layer.kind == 'type' else None,
-                    'order': layer_order  # Add layer order
-                })
+                if layer.kind == 'type':
+                    text_info = {
+                        'name': layer.name,
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'text': layer.text,
+                        'order': layer_order,  # Add layer order
+                        'alignment': None,
+                        'leading': None,
+                        'tracking': None,
+                        'font_list': None
+                    }
+                    
+                    if hasattr(layer, 'engine_dict'):
+                        text_info['alignment'] = layer.engine_dict.get('Justification', None)
+                        text_info['leading'] = layer.engine_dict.get('Leading', None)
+                        text_info['tracking'] = layer.engine_dict.get('Tracking', None)
+                    
+                    if hasattr(layer, 'resource_dict'):
+                        text_info['font_list'] = layer.resource_dict.get('FontSet', None)
+                    
+                    layer_info.append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{layer.name}.png'))
@@ -39,16 +54,28 @@ def extract_parts_from_group(group, output_dir, group_order):
                 subgroup_info, group_order = extract_parts_from_group(layer, output_dir, group_order)
                 group_info.extend(subgroup_info)
             else:
-                group_info.append({
-                    'name': f'{group.name}_part_{i}',
-                    'bbox': layer.bbox,
-                    'kind': layer.kind,
-                    'text': layer.text if layer.kind == 'type' else None,
-                    'fontset': layer.resource_dict['FontSet'] if layer.kind == 'type' else None,
-                    'runlength': layer.engine_dict['StyleRun']['RunLengthArray'] if layer.kind == 'type' else None,
-                    'rundata': layer.engine_dict['StyleRun']['RunArray'] if layer.kind == 'type' else None,
-                    'order': group_order  # Add group order
-                })
+                if layer.kind == 'type':
+                    text_info = {
+                        'name': f'{group.name}_part_{i}',
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'text': layer.text,
+                        'order': group_order,  # Add group order
+                        'alignment': None,
+                        'leading': None,
+                        'tracking': None,
+                        'font_list': None
+                    }
+                    
+                    if hasattr(layer, 'engine_dict'):
+                        text_info['alignment'] = layer.engine_dict.get('Justification', None)
+                        text_info['leading'] = layer.engine_dict.get('Leading', None)
+                        text_info['tracking'] = layer.engine_dict.get('Tracking', None)
+                    
+                    if hasattr(layer, 'resource_dict'):
+                        text_info['font_list'] = layer.resource_dict.get('FontSet', None)
+                    
+                    group_info.append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{group.name}_part_{i}.png'))
@@ -80,8 +107,9 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
-            st.write(f"Text: {layer['fontset']}")
-            st.write(f"Text: {layer['runlength']}")
-            st.write(f"Text: {layer['rundata']}")
+            st.write(f"Alignment: {layer['alignment']}")
+            st.write(f"Leading: {layer['leading']}")
+            st.write(f"Tracking: {layer['tracking']}")
+            st.write(f"Font List: {layer['font_list']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
