@@ -17,16 +17,20 @@ def separate_parts(psd_file):
                 layer_info.extend(group_info)
                 layer_order = group_order  # Update layer order after processing group
             else:
-                layer_info.append({
-                    'name': layer.name,
-                    'bbox': layer.bbox,
-                    'kind': layer.kind,
-                    'text': layer.text if layer.kind == 'type' else None,
-                    'order': layer_order,  # Add layer order
-                    'alignment': layer.text.engine_dict.get('Justification', None) if layer.kind == 'type' else None,
-                    'leading': layer.text.engine_dict.get('Leading', None) if layer.kind == 'type' else None,
-                    'tracking': layer.text.engine_dict.get('Tracking', None) if layer.kind == 'type' else None
-                })
+                if layer.kind == 'type':
+                    text_info = {
+                        'name': layer.name,
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'text': layer.text,
+                        'order': layer_order  # Add layer order
+                    }
+                    text_attrs = layer.text.as_dict()
+                    if 'engine_dict' in text_attrs:
+                        text_info['alignment'] = text_attrs['engine_dict'].get('Justification', None)
+                        text_info['leading'] = text_attrs['engine_dict'].get('Leading', None)
+                        text_info['tracking'] = text_attrs['engine_dict'].get('Tracking', None)
+                    layer_info.append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{layer.name}.png'))
@@ -42,16 +46,20 @@ def extract_parts_from_group(group, output_dir, group_order):
                 subgroup_info, group_order = extract_parts_from_group(layer, output_dir, group_order)
                 group_info.extend(subgroup_info)
             else:
-                group_info.append({
-                    'name': f'{group.name}_part_{i}',
-                    'bbox': layer.bbox,
-                    'kind': layer.kind,
-                    'text': layer.text if layer.kind == 'type' else None,
-                    'order': group_order,  # Add group order
-                    'alignment': layer.text.engine_dict.get('Justification', None) if layer.kind == 'type' else None,
-                    'leading': layer.text.engine_dict.get('Leading', None) if layer.kind == 'type' else None,
-                    'tracking': layer.text.engine_dict.get('Tracking', None) if layer.kind == 'type' else None
-                })
+                if layer.kind == 'type':
+                    text_info = {
+                        'name': f'{group.name}_part_{i}',
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'text': layer.text,
+                        'order': group_order  # Add group order
+                    }
+                    text_attrs = layer.text.as_dict()
+                    if 'engine_dict' in text_attrs:
+                        text_info['alignment'] = text_attrs['engine_dict'].get('Justification', None)
+                        text_info['leading'] = text_attrs['engine_dict'].get('Leading', None)
+                        text_info['tracking'] = text_attrs['engine_dict'].get('Tracking', None)
+                    group_info.append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{group.name}_part_{i}.png'))
@@ -83,9 +91,10 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
-            st.write(f"Horizontal Alignment: {layer['alignment'].get('Justification')}")  # Output horizontal alignment
-            st.write(f"Vertical Alignment: {layer['alignment'].get('VerticalJustification')}")  # Output vertical alignment
-            st.write(f"Leading: {layer['leading']}")  # Output leading
-            st.write(f"Tracking: {layer['tracking']}")  # Output tracking
+            if 'alignment' in layer:
+                st.write(f"Horizontal Alignment: {layer['alignment'].get('Justification')}")  # Output horizontal alignment
+                st.write(f"Vertical Alignment: {layer['alignment'].get('VerticalJustification')}")  # Output vertical alignment
+                st.write(f"Leading: {layer['leading']}")  # Output leading
+                st.write(f"Tracking: {layer['tracking']}")  # Output tracking
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
