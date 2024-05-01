@@ -26,7 +26,7 @@ def separate_parts(psd_file):
                         'order': layer_order,  # Add layer order
                         'alignment': layer.engine_dict.get('Justification', None),
                         'leading': layer.engine_dict.get('Leading', None),
-                        'tracking': layer.engine_dict.get('Tracking', None),
+                        'tracking': layer.engine_dict.get('StyleRun', None),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
@@ -55,7 +55,7 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'order': group_order,  # Add group order
                         'alignment': layer.engine_dict.get('Justification', None),
                         'leading': layer.engine_dict.get('Leading', None),
-                        'tracking': layer.engine_dict.get('Tracking', None),
+                        'tracking': layer.engine_dict.get('StyleRun', None),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
