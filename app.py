@@ -34,15 +34,23 @@ def separate_parts(psd_file):
                     img = layer.composite()
                     img.save(os.path.join(output_dir, f'{layer.name}.png'))
                     # Retain metadata for non-type layers
+                    x, y, width, height = layer.bbox
+                    # Calculate top-left corner coordinates and width-height
+                    top_left_x = x
+                    top_left_y = y
+                    width = width - x
+                    height = height - y
                     layer_info.append({
                         'name': layer.name,
-                        'bbox': layer.bbox,
+                        'x': top_left_x,
+                        'y': top_left_y,
+                        'width': width,
+                        'height': height,
                         'kind': layer.kind,
                         'order': layer_order
                     })
 
     return output_dir, layer_info, psd.width, psd.height
-
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
@@ -92,7 +100,9 @@ if uploaded_file is not None:
     st.write("Layer Information:")
     for layer in layer_info:
         st.write(f"Name: {layer['name']}")
-        st.write(f"Bounding Box: {layer['bbox']}")
+        st.write(f"Top Left Corner (x, y): ({layer['x']}, {layer['y']})")
+        st.write(f"Width: {layer['width']}")
+        st.write(f"Height: {layer['height']}")
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
