@@ -53,7 +53,7 @@ def separate_parts(psd_file):
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{layer.name}.png'))
 
-    return output_dir, layer_info, psd.width, psd.height
+    return output_dir, list(layer_info.values()), psd.width, psd.height  # Convert dictionary values to list
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
