@@ -6,7 +6,7 @@ import streamlit as st
 def separate_parts(psd_file):
     psd = PSDImage.open(psd_file)
     output_dir = tempfile.mkdtemp()
-    layer_info = {}  # Dictionary to store layer information grouped by styling attributes
+    layer_info = []  # List to store layer information
     layer_order = 0  # Initialize layer order
 
     for i, layer in enumerate(psd):
@@ -14,46 +14,26 @@ def separate_parts(psd_file):
             layer_order += 1  # Increment layer order
             if layer.is_group():
                 group_info, group_order = extract_parts_from_group(layer, output_dir, layer_order)
-                # Merge group_info into layer_info dictionary
-                layer_info.update(group_info)
+                layer_info.extend(group_info)
                 layer_order = group_order  # Update layer order after processing group
             else:
                 if layer.kind == 'type':
-                    # Get the styling attributes for the current text layer
-                    style_sheet = layer.engine_dict.get('StyleRun', None)
-                    font_list = layer.resource_dict.get('FontSet', [])
-
-                    # Convert the styling attributes to a hashable format (e.g., tuple)
-                    style_attributes = tuple(sorted(style_sheet.items()))
-
-                    # Create a key based on styling attributes to group text runs
-                    key = (layer.name, style_attributes)
-
-                    # Add the text layer to the corresponding group in the layer_info dictionary
-                    if key in layer_info:
-                        layer_info[key]['layers'].append({
-                            'name': layer.name,
-                            'bbox': layer.bbox,
-                            'text': layer.text,
-                            'order': layer_order
-                        })
-                    else:
-                        layer_info[key] = {
-                            'name': layer.name,
-                            'style_sheet': style_sheet,
-                            'font_list': font_list,
-                            'layers': [{
-                                'name': layer.name,
-                                'bbox': layer.bbox,
-                                'text': layer.text,
-                                'order': layer_order
-                            }]
-                        }
+                    text_info = {
+                        'name': layer.name,
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'text': layer.text,
+                        'order': layer_order,  # Add layer order
+                        'style_sheet': layer.engine_dict.get('StyleRun', None),
+                        'font_list': layer.resource_dict.get('FontSet', [])
+                    }
+                    
+                    layer_info.append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{layer.name}.png'))
 
-    return output_dir, list(layer_info.values()), psd.width, psd.height  # Convert dictionary values to list
+    return output_dir, layer_info, psd.width, psd.height
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
