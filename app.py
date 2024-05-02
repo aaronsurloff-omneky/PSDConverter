@@ -18,6 +18,7 @@ def separate_parts(psd_file):
                 layer_order = group_order  # Update layer order after processing group
             else:
                 if layer.kind == 'type':
+                    # Skip exporting type layers
                     text_info = {
                         'name': layer.name,
                         'bbox': layer.bbox,
@@ -27,11 +28,11 @@ def separate_parts(psd_file):
                         'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
-                    
                     layer_info.append(text_info)
-
-                img = layer.composite()
-                img.save(os.path.join(output_dir, f'{layer.name}.png'))
+                else:
+                    # Export all other layers as PNG
+                    img = layer.composite()
+                    img.save(os.path.join(output_dir, f'{layer.name}.png'))
 
     return output_dir, layer_info, psd.width, psd.height
 
