@@ -33,8 +33,16 @@ def separate_parts(psd_file):
                     # Export all other layers as PNG
                     img = layer.composite()
                     img.save(os.path.join(output_dir, f'{layer.name}.png'))
+                    # Retain metadata for non-type layers
+                    layer_info.append({
+                        'name': layer.name,
+                        'bbox': layer.bbox,
+                        'kind': layer.kind,
+                        'order': layer_order
+                    })
 
     return output_dir, layer_info, psd.width, psd.height
+
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
