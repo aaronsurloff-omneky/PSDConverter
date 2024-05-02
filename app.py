@@ -24,8 +24,8 @@ def separate_parts(psd_file):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun', None),  # Store style run info
-                        'font_list': layer.resource_dict.get('FontSet', [])  # Store font list
+                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
+                        'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
                     layer_info.append(text_info)
@@ -51,8 +51,8 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': group_order,  # Add group order
-                        'style_sheet': layer.engine_dict.get('StyleRun', None),  # Store style run info
-                        'font_list': layer.resource_dict.get('FontSet', [])  # Store font list
+                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
+                        'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
                     group_info.append(text_info)
@@ -87,13 +87,7 @@ if uploaded_file is not None:
         st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
-            st.write(f"StyleRun: {layer['style_sheet']}")  # Display style run info
-            st.write(f"Font List: {layer['font_list']}")  # Display font list
-            if layer['style_sheet']:  # Check if style run info exists
-                run_array = layer['style_sheet'].get('RunArray', [])
-                for run in run_array:
-                    styled_text = layer['text'][run['start']:run['start'] + run['length']]
-                    st.write(f"Styled Text: {styled_text}")
-                    # Add more styling attributes as needed
+            st.write(f"StyleRun: {layer['style_sheet']}")
+            st.write(f"Font List: {layer['font_list']}")
         st.write(f"Order: {layer['order']}")  # Print layer order
         st.write("")
