@@ -17,6 +17,8 @@ def separate_parts(psd_file):
                 layer_info.extend(group_info)
                 layer_order = group_order  # Update layer order after processing group
             else:
+                # Get blending mode of the layer
+                blending_mode = layer.blend_mode
                 if layer.kind == 'type':
                     # Skip exporting type layers
                     text_info = {
@@ -26,7 +28,8 @@ def separate_parts(psd_file):
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
                         'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
-                        'font_list': layer.resource_dict.get('FontSet', [])
+                        'font_list': layer.resource_dict.get('FontSet', []),
+                        'blend_mode': blending_mode  # Add blending mode
                     }
                     layer_info.append(text_info)
                 else:
@@ -47,7 +50,8 @@ def separate_parts(psd_file):
                         'width': width,
                         'height': height,
                         'kind': layer.kind,
-                        'order': layer_order
+                        'order': layer_order,
+                        'blend_mode': blending_mode  # Add blending mode
                     })
 
     return output_dir, layer_info, psd.width, psd.height
@@ -61,6 +65,8 @@ def extract_parts_from_group(group, output_dir, group_order):
                 subgroup_info, group_order = extract_parts_from_group(layer, output_dir, group_order)
                 group_info.extend(subgroup_info)
             else:
+                # Get blending mode of the layer
+                blending_mode = layer.blend_mode
                 if layer.kind == 'type':
                     text_info = {
                         'name': f'{group.name}_part_{i}',
@@ -69,7 +75,8 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'text': layer.text,
                         'order': group_order,  # Add group order
                         'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
-                        'font_list': layer.resource_dict.get('FontSet', [])
+                        'font_list': layer.resource_dict.get('FontSet', []),
+                        'blend_mode': blending_mode  # Add blending mode
                     }
                     group_info.append(text_info)
 
@@ -78,6 +85,7 @@ def extract_parts_from_group(group, output_dir, group_order):
 
     return group_info, group_order
 
+# Streamlit UI code
 st.title("PSD Importer Prototype")
 st.caption("This extracts visible layers, converts all non-images to PNG, outputs text, and tells us the location on the canvas for each exported part")
 
@@ -99,15 +107,16 @@ if uploaded_file is not None:
     st.write("Layer Information:")
     for layer in layer_info:
         st.write(f"Name: {layer['name']}")
-        st.write(f"Kind: {layer['kind']}")
         if 'x' in layer and 'y' in layer and 'width' in layer and 'height' in layer:
             st.write(f"Top Left Corner (x, y): ({layer['x']}, {layer['y']})")
             st.write(f"Width: {layer['width']}")
             st.write(f"Height: {layer['height']}")
+        st.write(f"Kind: {layer['kind']}")
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
             st.write(f"StyleRun: {layer['style_sheet']}")
             st.write(f"Font List: {layer['font_list']}")
-        st.write(f"Order: {layer['order']}")  # Print layer order
+        # Print blending mode
+        st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
+        st.write(f"Order: {layer['order']}")
         st.write("")
-
