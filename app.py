@@ -71,7 +71,6 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
-                    
                     group_info.append(text_info)
 
                 img = layer.composite()
