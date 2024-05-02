@@ -8,19 +8,21 @@ def separate_parts(psd_file):
     output_dir = tempfile.mkdtemp()
     layer_info = []  # List to store layer information
     layer_order = 0  # Initialize layer order
+    text_layers = {}  # Dictionary to store text layers grouped by content
 
     for i, layer in enumerate(psd):
         if layer.is_visible():
             layer_order += 1  # Increment layer order
             if layer.is_group():
-                group_info, group_order = extract_parts_from_group(layer, output_dir, layer_order)
+                group_info, group_order, group_text_layers = extract_parts_from_group(layer, output_dir, layer_order)
                 layer_info.extend(group_info)
                 layer_order = group_order  # Update layer order after processing group
+                for content, text_layer_info in group_text_layers.items():
+                    text_layers.setdefault(content, []).extend(text_layer_info)
             else:
                 # Get blending mode of the layer
                 blending_mode = layer.blend_mode
                 if layer.kind == 'type':
-                    # Skip exporting type layers
                     text_info = {
                         'name': layer.name,
                         'bbox': layer.bbox,
@@ -32,6 +34,7 @@ def separate_parts(psd_file):
                         'blend_mode': blending_mode  # Add blending mode
                     }
                     layer_info.append(text_info)
+                    text_layers.setdefault(layer.text, []).append(text_info)
                 else:
                     # Export all other layers as PNG
                     img = layer.composite()
@@ -54,16 +57,20 @@ def separate_parts(psd_file):
                         'blend_mode': blending_mode  # Add blending mode
                     })
 
-    return output_dir, layer_info, psd.width, psd.height
+    return output_dir, layer_info, psd.width, psd.height, text_layers
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
+    group_text_layers = {}  # Dictionary to store text layers grouped by content
     for i, layer in enumerate(group):
         if layer.is_visible():
             group_order += 1  # Increment group order
             if layer.is_group():
-                subgroup_info, group_order = extract_parts_from_group(layer, output_dir, group_order)
+                subgroup_info, group_order, subgroup_text_layers = extract_parts_from_group(layer, output_dir, group_order)
                 group_info.extend(subgroup_info)
+                group_order = group_order  # Update group order after processing subgroup
+                for content, text_layer_info in subgroup_text_layers.items():
+                    group_text_layers.setdefault(content, []).extend(text_layer_info)
             else:
                 # Get blending mode of the layer
                 blending_mode = layer.blend_mode
@@ -79,11 +86,12 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'blend_mode': blending_mode  # Add blending mode
                     }
                     group_info.append(text_info)
+                    group_text_layers.setdefault(layer.text, []).append(text_info)
 
                 img = layer.composite()
                 img.save(os.path.join(output_dir, f'{group.name}_part_{i}.png'))
 
-    return group_info, group_order
+    return group_info, group_order, group_text_layers
 
 # Streamlit UI code
 st.title("PSD Importer Prototype")
@@ -92,7 +100,7 @@ st.caption("This extracts visible layers, converts all non-images to PNG, output
 uploaded_file = st.file_uploader("Upload a PSD file", type=["psd"])
 
 if uploaded_file is not None:
-    output_dir, layer_info, canvas_width, canvas_height = separate_parts(uploaded_file)
+    output_dir, layer_info, canvas_width, canvas_height, text_layers = separate_parts(uploaded_file)
     st.write("Canvas Width:", canvas_width)
     st.write("Canvas Height:", canvas_height)
     st.write("Separation completed! Download the separated parts:")
@@ -116,7 +124,15 @@ if uploaded_file is not None:
             st.write(f"Text: {layer['text']}")
             st.write(f"StyleRun: {layer['style_sheet']}")
             st.write(f"Font List: {layer['font_list']}")
-        # Print blending mode
         st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
         st.write(f"Order: {layer['order']}")
         st.write("")
+
+    st.write("Text Layers:")
+    for text_content, text_layers in text_layers.items():
+        st.write(f"Text Content: {text_content}")
+        for text_layer in text_layers:
+            st.write(f"Name: {text_layer['name']}")
+            st.write(f"Kind: {text_layer['kind']}")
+           
+
