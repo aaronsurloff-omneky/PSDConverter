@@ -27,7 +27,8 @@ def separate_parts(psd_file):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
+                        'style_sheet': layer.engine_dict.get('StyleRun', []),
+                        'style_align': layer.engine_dict.get('StyleRunAlignment', []),                        
                         'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode  # Add blending mode
                     }
@@ -75,6 +76,7 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'text': layer.text,
                         'order': group_order,  # Add group order
                         'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
+                        'style_align': layer.engine_dict.get('StyleRunAlignment', []),    
                         'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode  # Add blending mode
                     }
@@ -115,6 +117,7 @@ if uploaded_file is not None:
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
             st.write(f"StyleRun: {layer['style_sheet']}")
+            st.write(f"StyleRunAlignment: {layer['style_align']}")
             st.write(f"Font List: {layer['font_list']}")
         # Print blending mode
         st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
