@@ -24,7 +24,7 @@ def separate_parts(psd_file):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun')('RunArray'),
+                        'style_sheet': layer.engine_dict.get('StyleRun', []),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
@@ -51,7 +51,7 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': group_order,  # Add group order
-                        'style_sheet': layer.engine_dict.get('StyleRun')('RunArray'),
+                        'style_sheet': layer.engine_dict.get('StyleRun', []),
                         'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     
