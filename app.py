@@ -27,10 +27,10 @@ def separate_parts(psd_file):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun', []),
-                        'style_align': layer.engine_dict.get('StyleRunAlignment', []),                        
+                        'style_sheet': layer.engine_dict.get('StyleRun', []),                      
                         'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode  # Add blending mode
+                        'layer_effects': layer.effects  # Add layer effects
                     }
                     layer_info.append(text_info)
                 else:
@@ -75,10 +75,10 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': group_order,  # Add group order
-                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
-                        'style_align': layer.engine_dict.get('StyleRunAlignment', []),    
+                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']), 
                         'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode  # Add blending mode
+                        'layer_effects': layer.effects  # Add layer effects
                     }
                     group_info.append(text_info)
 
@@ -117,8 +117,8 @@ if uploaded_file is not None:
         if layer['kind'] == 'type':
             st.write(f"Text: {layer['text']}")
             st.write(f"StyleRun: {layer['style_sheet']}")
-            st.write(f"StyleRunAlignment: {layer['style_align']}")
             st.write(f"Font List: {layer['font_list']}")
+            st.write(f"Layer Effects: {layer['layer_effects']}")            
         # Print blending mode
         st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
         st.write(f"Order: {layer['order']}")
