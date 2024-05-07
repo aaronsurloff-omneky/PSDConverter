@@ -1,14 +1,14 @@
-import os
 import tempfile
-import streamlit as st
 from psd_tools import PSDImage
+import streamlit as st
 
-def separate_parts(artboard):
+def separate_parts(psd_file):
+    psd = PSDImage.open(psd_file)
     output_dir = tempfile.mkdtemp()
     layer_info = []  # List to store layer information
     layer_order = 0  # Initialize layer order
 
-    for i, layer in enumerate(artboard):
+    for i, layer in enumerate(psd):
         if layer.is_visible():
             layer_order += 1  # Increment layer order
             if layer.is_group():
@@ -54,7 +54,7 @@ def separate_parts(artboard):
                         'blend_mode': blending_mode  # Add blending mode
                     })
 
-    return output_dir, layer_info, artboard.width, artboard.height
+    return output_dir, layer_info, psd.width, psd.height
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
@@ -86,16 +86,6 @@ def extract_parts_from_group(group, output_dir, group_order):
 
     return group_info, group_order
 
-def has_multiple_artboards(psd_file):
-    psd = PSDImage.open(psd_file)
-    return len(psd) > 1
-
-def select_artboard(psd_file):
-    psd = PSDImage.open(psd_file)
-    artboard_names = [f"Artboard {i+1}" for i in range(len(psd))]
-    selected_artboard = st.selectbox("Select Artboard:", artboard_names)
-    return psd[artboard_names.index(selected_artboard)]
-
 # Streamlit UI code
 st.title("PSD Importer Prototype")
 st.caption("This extracts visible layers, converts all non-images to PNG, outputs text, and tells us the location on the canvas for each exported part")
@@ -103,13 +93,7 @@ st.caption("This extracts visible layers, converts all non-images to PNG, output
 uploaded_file = st.file_uploader("Upload a PSD file", type=["psd"])
 
 if uploaded_file is not None:
-    if has_multiple_artboards(uploaded_file):
-        selected_artboard = select_artboard(uploaded_file)
-        output_dir, layer_info, canvas_width, canvas_height = separate_parts(selected_artboard)
-    else:
-        psd = PSDImage.open(uploaded_file)
-        output_dir, layer_info, canvas_width, canvas_height = separate_parts(psd)
-
+    output_dir, layer_info, canvas_width, canvas_height = separate_parts(uploaded_file)
     st.write("Canvas Width:", canvas_width)
     st.write("Canvas Height:", canvas_height)
     st.write("Separation completed! Download the separated parts:")
