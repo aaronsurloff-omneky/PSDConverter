@@ -1,7 +1,7 @@
 import os
 import tempfile
-from psd_tools import PSDImage
 import streamlit as st
+from psd_tools import PSDImage
 
 def separate_parts(psd_file):
     psd = PSDImage.open(psd_file)
@@ -13,79 +13,57 @@ def separate_parts(psd_file):
         if layer.is_visible():
             layer_order += 1  # Increment layer order
             if layer.is_group():
-                group_info, group_order = extract_parts_from_group(layer, output_dir, layer_order)
-                layer_info.extend(group_info)
-                layer_order = group_order  # Update layer order after processing group
+                # Flatten the group and treat its contents as individual layers
+                group_layers = layer.layers
+                for group_layer in group_layers:
+                    if group_layer.is_visible():
+                        if group_layer.is_group():
+                            continue  # Skip nested groups for now
+                        else:
+                            process_layer(group_layer, output_dir, layer_order, layer_info)
             else:
-                # Get blending mode of the layer
-                blending_mode = layer.blend_mode
-                if layer.kind == 'type':
-                    # Skip exporting type layers
-                    text_info = {
-                        'name': layer.name,
-                        'bbox': layer.bbox,
-                        'kind': layer.kind,
-                        'text': layer.text,
-                        'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun', []),                      
-                        'font_list': layer.resource_dict.get('FontSet', []),
-                        'blend_mode': blending_mode,  # Add blending mode
-                        'layer_effects': layer.effects  # Add layer effects
-                    }
-                    layer_info.append(text_info)
-                else:
-                    # Export all other layers as PNG
-                    img = layer.composite()
-                    img.save(os.path.join(output_dir, f'{layer.name}.png'))
-                    # Retain metadata for non-type layers
-                    x, y, width, height = layer.bbox
-                    # Calculate top-left corner coordinates and width-height
-                    top_left_x = x
-                    top_left_y = y
-                    width = width - x
-                    height = height - y
-                    layer_info.append({
-                        'name': layer.name,
-                        'x': top_left_x,
-                        'y': top_left_y,
-                        'width': width,
-                        'height': height,
-                        'kind': layer.kind,
-                        'order': layer_order,
-                        'blend_mode': blending_mode  # Add blending mode
-                    })
+                process_layer(layer, output_dir, layer_order, layer_info)
 
     return output_dir, layer_info, psd.width, psd.height
 
-def extract_parts_from_group(group, output_dir, group_order):
-    group_info = []
-    for i, layer in enumerate(group):
-        if layer.is_visible():
-            group_order += 1  # Increment group order
-            if layer.is_group():
-                subgroup_info, group_order = extract_parts_from_group(layer, output_dir, group_order)
-                group_info.extend(subgroup_info)
-            else:
-                # Get blending mode of the layer
-                blending_mode = layer.blend_mode
-                if layer.kind == 'type':
-                    text_info = {
-                        'name': f'{group.name}_part_{i}',
-                        'bbox': layer.bbox,
-                        'kind': layer.kind,
-                        'text': layer.text,
-                        'order': group_order,  # Add group order
-                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']), 
-                        'font_list': layer.resource_dict.get('FontSet', []),
-                        'blend_mode': blending_mode,  # Add blending mode
-                        'layer_effects': layer.effects  # Add layer effects
-                    }
-                    group_info.append(text_info)
-
-                img = layer.composite()
-                img.save(os.path.join(output_dir, f'{group.name}_part_{i}.png'))
-
-    return group_info, group_order
+def process_layer(layer, output_dir, layer_order, layer_info):
+    # Get blending mode of the layer
+    blending_mode = layer.blend_mode
+    if layer.kind == 'type':
+        # Skip exporting type layers
+        text_info = {
+            'name': layer.name,
+            'bbox': layer.bbox,
+            'kind': layer.kind,
+            'text': layer.text,
+            'order': layer_order,  # Add layer order
+            'style_sheet': layer.engine_dict.get('StyleRun', []),
+            'font_list': layer.resource_dict.get('FontSet', []),
+            'blend_mode': blending_mode,  # Add blending mode
+            'layer_effects': layer.effects  # Add layer effects
+        }
+        layer_info.append(text_info)
+    else:
+        # Export all other layers as PNG
+        img = layer.composite()
+        img.save(os.path.join(output_dir, f'{layer.name}.png'))
+        # Retain metadata for non-type layers
+        x, y, width, height = layer.bbox
+        # Calculate top-left corner coordinates and width-height
+        top_left_x = x
+        top_left_y = y
+        width = width - x
+        height = height - y
+        layer_info.append({
+            'name': layer.name,
+            'x': top_left_x,
+            'y': top_left_y,
+            'width': width,
+            'height': height,
+            'kind': layer.kind,
+            'order': layer_order,
+            'blend_mode': blending_mode  # Add blending mode
+        })
 
 # Streamlit UI code
 st.title("PSD Importer Prototype")
@@ -118,7 +96,7 @@ if uploaded_file is not None:
             st.write(f"Text: {layer['text']}")
             st.write(f"StyleRun: {layer['style_sheet']}")
             st.write(f"Font List: {layer['font_list']}")
-            st.write(f"Layer Effects: {layer['layer_effects']}")            
+            st.write(f"Layer Effects: {layer['layer_effects']}")
         # Print blending mode
         st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
         st.write(f"Order: {layer['order']}")
