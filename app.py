@@ -12,9 +12,10 @@ def has_multiple_artboards(psd_file):
 
 def select_artboard(psd_file):
     psd = PSDImage.open(psd_file)
-    artboard_names = [f"Artboard {i+1}" for i in range(len(psd.artboards))]
+    artboard_names = [f"Artboard {i+1}" for i in range(len(list(filter(lambda x: isinstance(x, psd_tools.api.layers.Artboard), psd))))]
     selected_artboard = st.selectbox("Select Artboard:", artboard_names)
-    return psd.artboards[artboard_names.index(selected_artboard)]
+    return selected_artboard
+
 
 def separate_parts(psd_file, artboard=None):
     psd = PSDImage.open(psd_file)
