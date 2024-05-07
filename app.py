@@ -5,7 +5,10 @@ from psd_tools import PSDImage
 
 def has_multiple_artboards(psd_file):
     psd = PSDImage.open(psd_file)
-    return len(psd.artboards) > 1
+    for layer in psd:
+        if isinstance(layer, psd_tools.api.layers.Artboard):
+            return True
+    return False
 
 def select_artboard(psd_file):
     psd = PSDImage.open(psd_file)
