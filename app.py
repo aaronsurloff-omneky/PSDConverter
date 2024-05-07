@@ -3,13 +3,12 @@ import tempfile
 import streamlit as st
 from psd_tools import PSDImage
 
-def separate_parts(psd_file):
-    psd = PSDImage.open(psd_file)
+def separate_parts(artboard):
     output_dir = tempfile.mkdtemp()
     layer_info = []  # List to store layer information
     layer_order = 0  # Initialize layer order
 
-    for i, layer in enumerate(psd):
+    for i, layer in enumerate(artboard):
         if layer.is_visible():
             layer_order += 1  # Increment layer order
             if layer.is_group():
@@ -55,7 +54,7 @@ def separate_parts(psd_file):
                         'blend_mode': blending_mode  # Add blending mode
                     })
 
-    return output_dir, layer_info, psd.width, psd.height
+    return output_dir, layer_info, artboard.width, artboard.height
 
 def extract_parts_from_group(group, output_dir, group_order):
     group_info = []
@@ -108,7 +107,8 @@ if uploaded_file is not None:
         selected_artboard = select_artboard(uploaded_file)
         output_dir, layer_info, canvas_width, canvas_height = separate_parts(selected_artboard)
     else:
-        output_dir, layer_info, canvas_width, canvas_height = separate_parts(uploaded_file)
+        psd = PSDImage.open(uploaded_file)
+        output_dir, layer_info, canvas_width, canvas_height = separate_parts(psd)
 
     st.write("Canvas Width:", canvas_width)
     st.write("Canvas Height:", canvas_height)
@@ -124,17 +124,4 @@ if uploaded_file is not None:
     st.write("Layer Information:")
     for layer in layer_info:
         st.write(f"Name: {layer['name']}")
-        if 'x' in layer and 'y' in layer and 'width' in layer and 'height' in layer:
-            st.write(f"Top Left Corner (x, y): ({layer['x']}, {layer['y']})")
-            st.write(f"Width: {layer['width']}")
-            st.write(f"Height: {layer['height']}")
-        st.write(f"Kind: {layer['kind']}")
-        if layer['kind'] == 'type':
-            st.write(f"Text: {layer['text']}")
-            st.write(f"StyleRun: {layer['style_sheet']}")
-            st.write(f"Font List: {layer['font_list']}")
-            st.write(f"Layer Effects: {layer['layer_effects']}")            
-        # Print blending mode
-        st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
-        st.write(f"Order: {layer['order']}")
-        st.write("")
+        if 'x' in layer
