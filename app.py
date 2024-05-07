@@ -1,3 +1,4 @@
+import os
 import tempfile
 from psd_tools import PSDImage
 import streamlit as st
