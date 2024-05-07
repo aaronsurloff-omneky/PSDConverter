@@ -13,14 +13,25 @@ def separate_parts(psd_file):
         if layer.is_visible():
             layer_order += 1  # Increment layer order
             if layer.is_group():
-                # Flatten the group and treat its contents as individual layers
-                group_layers = layer.layers
-                for group_layer in group_layers:
-                    if group_layer.is_visible():
-                        if group_layer.is_group():
-                            continue  # Skip nested groups for now
-                        else:
-                            process_layer(group_layer, output_dir, layer_order, layer_info)
+                # Flatten the group into a single PNG
+                group_img = layer.composite()
+                group_img.save(os.path.join(output_dir, f'{layer.name}.png'))
+                # Add group info to layer_info
+                x, y, width, height = layer.bbox
+                top_left_x = x
+                top_left_y = y
+                width = width - x
+                height = height - y
+                layer_info.append({
+                    'name': layer.name,
+                    'x': top_left_x,
+                    'y': top_left_y,
+                    'width': width,
+                    'height': height,
+                    'kind': layer.kind,
+                    'order': layer_order,
+                    'blend_mode': layer.blend_mode  # Add blending mode
+                })
             else:
                 process_layer(layer, output_dir, layer_order, layer_info)
 
