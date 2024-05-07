@@ -88,13 +88,13 @@ def extract_parts_from_group(group, output_dir, group_order):
 
 def has_multiple_artboards(psd_file):
     psd = PSDImage.open(psd_file)
-    return len(psd.artboards) > 1
+    return len(psd) > 1
 
 def select_artboard(psd_file):
     psd = PSDImage.open(psd_file)
-    artboard_names = [f"Artboard {i+1}" for i in range(len(psd.artboards))]
+    artboard_names = [f"Artboard {i+1}" for i in range(len(psd))]
     selected_artboard = st.selectbox("Select Artboard:", artboard_names)
-    return psd.artboards[artboard_names.index(selected_artboard)]
+    return psd[artboard_names.index(selected_artboard)]
 
 # Streamlit UI code
 st.title("PSD Importer Prototype")
