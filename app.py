@@ -124,4 +124,17 @@ if uploaded_file is not None:
     st.write("Layer Information:")
     for layer in layer_info:
         st.write(f"Name: {layer['name']}")
-        if 'x' in layer
+        if 'x' in layer and 'y' in layer and 'width' in layer and 'height' in layer:
+            st.write(f"Top Left Corner (x, y): ({layer['x']}, {layer['y']})")
+            st.write(f"Width: {layer['width']}")
+            st.write(f"Height: {layer['height']}")
+        st.write(f"Kind: {layer['kind']}")
+        if layer['kind'] == 'type':
+            st.write(f"Text: {layer['text']}")
+            st.write(f"StyleRun: {layer['style_sheet']}")
+            st.write(f"Font List: {layer['font_list']}")
+            st.write(f"Layer Effects: {layer['layer_effects']}")            
+        # Print blending mode
+        st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
+        st.write(f"Order: {layer['order']}")
+        st.write("")
