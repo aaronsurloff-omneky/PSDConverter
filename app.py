@@ -6,13 +6,13 @@ from psd_tools import PSDImage
 def has_multiple_artboards(psd_file):
     psd = PSDImage.open(psd_file)
     for layer in psd:
-        if isinstance(layer, psd_tools.api.layers.Artboard):
+        if isinstance(layer, psd_tools.Artboard):
             return True
     return False
 
 def select_artboard(psd_file):
     psd = PSDImage.open(psd_file)
-    artboard_names = [f"Artboard {i+1}" for i in range(len(list(filter(lambda x: isinstance(x, psd_tools.api.layers.Artboard), psd))))]
+    artboard_names = [f"Artboard {i+1}" for i in range(len(list(filter(lambda x: isinstance(x, psd_tools.Artboard), psd))))]
     selected_artboard = st.selectbox("Select Artboard:", artboard_names)
     return selected_artboard
 
