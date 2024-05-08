@@ -99,7 +99,7 @@ def get_artboard_info(psd):
         for layer_order, layer in enumerate(psd):
             if isinstance(layer, Artboard):
                 artboard_name = layer.name
-                artboard_layers = []
+                artboard_layers = []  # List to store dictionaries and PSD layer objects
                 for sub_layer_order, sub_layer in enumerate(layer):
                     top_left_x, top_left_y, bottom_right_x, bottom_right_y = sub_layer.bbox
                     width = bottom_right_x - top_left_x
@@ -114,7 +114,10 @@ def get_artboard_info(psd):
                         'order': sub_layer_order,
                         'blend_mode': sub_layer.blend_mode
                     }
-                    artboard_layers.append(sub_layer_info)
+                    artboard_layers.append({
+                        'info': sub_layer_info,  # Add dictionary containing layer information
+                        'layer': sub_layer  # Add PSD layer object
+                    })
                 artboard_info.append({
                     'name': artboard_name,
                     'layers': artboard_layers,
@@ -124,6 +127,28 @@ def get_artboard_info(psd):
     except Exception as e:
         logging.exception("Error in get_artboard_info:")
     return artboard_info
+
+
+def export_sub_layer_as_png(sub_layer, artboard_name, sub_layer_info):
+    # Create a temporary directory to store the exported PNG files
+    output_dir = tempfile.mkdtemp()
+
+    # Flatten the sub_layer
+    sub_layer_flattened = sub_layer.composite()
+
+    # Export the flattened sub_layer as PNG
+    output_path = os.path.join(output_dir, f"{artboard_name}_{sub_layer_info['name']}.png")
+    sub_layer_flattened.save(output_path)
+
+    # Display the download button for the exported PNG
+    st.download_button(
+        label=f"Download {artboard_name}_{sub_layer_info['name']}.png",
+        data=open(output_path, "rb").read(),
+        file_name=f"{sub_layer_info['name']}.png",
+        mime="image/png"
+    )
+
+
 
 def main():
     st.title("PSD Importer Prototype")
@@ -151,16 +176,25 @@ def main():
             for info in artboard_info:
                 if info['name'] == selected_artboard:
                     st.subheader(f"Artboard: {info['name']}")
-                    for sub_layer in info['layers']:
-                        st.write(f"  Name: {sub_layer['name']}")
-                        st.write(f"  X: {sub_layer['x']}")
-                        st.write(f"  Y: {sub_layer['y']}")
-                        st.write(f"  Width: {sub_layer['width']}")
-                        st.write(f"  Height: {sub_layer['height']}")
-                        st.write(f"  Kind: {sub_layer['kind']}")
-                        st.write(f"  Order: {sub_layer['order']}")
-                        st.write(f"  Blend Mode: {sub_layer['blend_mode']}")
+                    st.write(f"Canvas Width: {info['artboard'].width}")
+                    st.write(f"Canvas Height: {info['artboard'].height}")
+                    st.write("")
+                    for entry in info['layers']:
+                        sub_layer_info = entry['info']  # Dictionary containing layer information
+                        sub_layer = entry['layer']  # PSD layer object
+
+                        st.write(f"  Name: {sub_layer_info['name']}")
+                        st.write(f"  X: {sub_layer_info['x']}")
+                        st.write(f"  Y: {sub_layer_info['y']}")
+                        st.write(f"  Width: {sub_layer_info['width']}")
+                        st.write(f"  Height: {sub_layer_info['height']}")
+                        st.write(f"  Kind: {sub_layer_info['kind']}")
+                        st.write(f"  Order: {sub_layer_info['order']}")
+                        st.write(f"  Blend Mode: {sub_layer_info['blend_mode']}")
                         st.write("")
+
+                        # Export sub-layer as PNG
+                        export_sub_layer_as_png(sub_layer, selected_artboard, sub_layer_info)
         else:
             # Reset file pointer to the beginning of the file
             uploaded_file.seek(0)
