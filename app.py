@@ -114,10 +114,29 @@ def get_artboard_info(psd):
                         'order': sub_layer_order,
                         'blend_mode': sub_layer.blend_mode
                     }
-                    artboard_layers.append({
-                        'info': sub_layer_info,  # Add dictionary containing layer information
-                        'layer': sub_layer  # Add PSD layer object
-                    })
+                    if sub_layer.kind == 'type':
+                        # Handle type layers
+                        text_info = {
+                            'name': sub_layer.name,
+                            'bbox': sub_layer.bbox,
+                            'kind': sub_layer.kind,
+                            'text': sub_layer.text,
+                            'order': sub_layer_order,  # Add layer order
+                            'style_sheet': sub_layer.engine_dict.get('StyleRun', []),                      
+                            'font_list': sub_layer.resource_dict.get('FontSet', []),
+                            'blend_mode': sub_layer.blend_mode,  # Add blending mode
+                            'layer_effects': sub_layer.effects  # Add layer effects
+                        }
+                        artboard_layers.append({
+                            'info': sub_layer_info,  # Add dictionary containing layer information
+                            'layer': sub_layer,  # Add PSD layer object
+                            'type_info': text_info  # Add type layer info
+                        })
+                    else:
+                        artboard_layers.append({
+                            'info': sub_layer_info,  # Add dictionary containing layer information
+                            'layer': sub_layer  # Add PSD layer object
+                        })
                 artboard_info.append({
                     'name': artboard_name,
                     'layers': artboard_layers,
@@ -182,6 +201,7 @@ def main():
                     for entry in info['layers']:
                         sub_layer_info = entry['info']  # Dictionary containing layer information
                         sub_layer = entry['layer']  # PSD layer object
+                        type_info = entry.get('type_info')  # Type layer information, if available
 
                         st.write(f"  Name: {sub_layer_info['name']}")
                         st.write(f"  X: {sub_layer_info['x']}")
@@ -191,7 +211,18 @@ def main():
                         st.write(f"  Kind: {sub_layer_info['kind']}")
                         st.write(f"  Order: {sub_layer_info['order']}")
                         st.write(f"  Blend Mode: {sub_layer_info['blend_mode']}")
-                        st.write("")
+
+                        if type_info:
+                            # Display type layer information
+                            st.write("  Type Layer Information:")
+                            st.write(f"    Text: {type_info['text']}")
+                            st.write(f"    StyleRun: {type_info['style_sheet']}")
+                            st.write(f"    Font List: {type_info['font_list']}")
+                            st.write(f"    Layer Effects: {type_info['layer_effects']}")
+                            st.write(f"    Blend Mode: {type_info['blend_mode']}")
+                            st.write("")
+                        else:
+                            st.write("")
 
                         # Export sub-layer as PNG
                         export_sub_layer_as_png(sub_layer, selected_artboard, sub_layer_info)
