@@ -26,50 +26,21 @@ def separate_parts(psd_file):
                 # Get blending mode of the layer
                 blending_mode = layer.blend_mode
                 if layer.kind == 'type':
-                    # Parse layer effects for type layers
-                    effects_info = get_layer_effects_info(layer)
-
-                    # Calculate top-left corner coordinates and width-height
-                    top_left_x, top_left_y, bottom_right_x, bottom_right_y = layer.bbox
                     # Skip exporting type layers
                     text_info = {
                         'name': layer.name,
-                        'x': top_left_x,
-                        'y': top_left_y,
-                        'width': width,
-                        'height': height,
                         'kind': layer.kind,
                         'text': layer.text,
-                        'order': layer_order,  # Add layer order
-                        'style_sheet': layer.engine_dict.get('StyleRun', []),                      
-                        'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode,  # Add blending mode
-                        'opacity': layer.opacity  # Add opacity
+                        'opacity': layer.opacity,  # Add opacity
+                        'style_sheet': layer.engine_dict.get('StyleRun', []),
+                        'font_list': layer.resource_dict.get('FontSet', [])
                     }
                     layer_info.append(text_info)
                 else:
                     # Export all other layers as PNG
                     img = layer.composite()
                     img.save(os.path.join(output_dir, f'{layer.name}.png'))
-
-                    # Calculate top-left corner coordinates and width-height
-                    top_left_x, top_left_y, bottom_right_x, bottom_right_y = layer.bbox
-                    width = bottom_right_x - top_left_x
-                    height = bottom_right_y - top_left_y
-                    # Parse layer effects for non-type layers
-                    effects_info = get_layer_effects_info(layer)
-                    layer_info.append({
-                        'name': layer.name,
-                        'x': top_left_x,
-                        'y': top_left_y,
-                        'width': width,
-                        'height': height,
-                        'kind': layer.kind,
-                        'order': layer_order,
-                        'blend_mode': blending_mode,  # Add blending mode
-                        'layer_effects': effects_info,  # Add layer effects
-                        'opacity': layer.opacity  # Add opacity
-                    })
 
     return output_dir, layer_info, psd.width, psd.height
 
@@ -91,7 +62,7 @@ def extract_parts_from_group(group, output_dir, group_order):
                         'kind': layer.kind,
                         'text': layer.text,
                         'order': group_order,  # Add group order
-                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']), 
+                        'style_sheet': layer.engine_dict.get('StyleRun', ['RunArray']),
                         'font_list': layer.resource_dict.get('FontSet', []),
                         'blend_mode': blending_mode,  # Add blending mode
                         'opacity': layer.opacity,  # Add opacity
@@ -125,6 +96,12 @@ def get_artboard_info(psd):
                         'order': sub_layer_order,
                         'blend_mode': sub_layer.blend_mode,
                     }
+                    if sub_layer.kind == 'type':
+                        sub_layer_info.update({
+                            'opacity': sub_layer.opacity,
+                            'style_sheet': sub_layer.engine_dict.get('StyleRun', []),
+                            'font_list': sub_layer.resource_dict.get('FontSet', []),
+                        })
                     artboard_layers.append({
                         'info': sub_layer_info,  # Add dictionary containing layer information
                         'layer': sub_layer  # Add PSD layer object
@@ -164,23 +141,19 @@ def get_layer_effects_info(layer):
     return effects_info
 
 def export_sub_layer_as_png(sub_layer, artboard_name, sub_layer_info):
-    # Create a temporary directory to store the exported PNG files
-    output_dir = tempfile.mkdtemp()
+    if sub_layer_info['kind'] != 'type':
+        # Export non-type layers as PNG files
+        output_dir = tempfile.mkdtemp()
+        output_path = os.path.join(output_dir, f"{artboard_name}_{sub_layer_info['name']}.png")
+        sub_layer.composite().save(output_path)
 
-    # Flatten the sub_layer
-    sub_layer_flattened = sub_layer.composite()
-
-    # Export the flattened sub_layer as PNG
-    output_path = os.path.join(output_dir, f"{artboard_name}_{sub_layer_info['name']}.png")
-    sub_layer_flattened.save(output_path)
-
-    # Display the download button for the exported PNG
-    st.download_button(
-        label=f"Download {artboard_name}_{sub_layer_info['name']}.png",
-        data=open(output_path, "rb").read(),
-        file_name=f"{sub_layer_info['name']}.png",
-        mime="image/png"
-    )
+        # Display the download button for the exported PNG
+        st.download_button(
+            label=f"Download {artboard_name}_{sub_layer_info['name']}.png",
+            data=open(output_path, "rb").read(),
+            file_name=f"{sub_layer_info['name']}.png",
+            mime="image/png"
+        )
 
 def main():
     st.title("PSD Importer Prototype")
@@ -224,20 +197,25 @@ def main():
                         st.write(f"  Order: {sub_layer_info['order']}")
                         st.write(f"  Blend Mode: {sub_layer_info['blend_mode']}")
 
-                        # Get layer effects information
-                        effects_info = get_layer_effects_info(sub_layer)
+                        if sub_layer_info['kind'] == 'type':
+                            # Display additional information for type layers
+                            st.write(f"  Opacity: {sub_layer_info['opacity']}")
+                            st.write(f"  Style Sheet: {sub_layer_info['style_sheet']}")
+                            st.write(f"  Font List: {sub_layer_info['font_list']}")
+                        else:
+                            # Get layer effects information for non-type layers
+                            effects_info = get_layer_effects_info(sub_layer)
 
-                        # Display layer effects information
-                        for effect_info in effects_info:
-                            st.write("  Layer Effect:")
-                            st.write(f"    Type: {effect_info['type']}")
-                            st.write(f"    Color: {effect_info['color']}")
-                            st.write(f"    Size: {effect_info['size']}")
-                            st.write(f"    Opacity: {effect_info['opacity']}")
-                            if effect_info['type'] == 'Drop Shadow':
-                                st.write(f"    Angle: {effect_info['angle']}")
-                                st.write(f"    Distance: {effect_info['distance']}")
-
+                            # Display layer effects information
+                            for effect_info in effects_info:
+                                st.write("  Layer Effect:")
+                                st.write(f"    Type: {effect_info['type']}")
+                                st.write(f"    Color: {effect_info['color']}")
+                                st.write(f"    Size: {effect_info['size']}")
+                                st.write(f"    Opacity: {effect_info['opacity']}")
+                                if effect_info['type'] == 'Drop Shadow':
+                                    st.write(f"    Angle: {effect_info['angle']}")
+                                    st.write(f"    Distance: {effect_info['distance']}")
 
                         # Export sub-layer as PNG
                         export_sub_layer_as_png(sub_layer, selected_artboard, sub_layer_info)
