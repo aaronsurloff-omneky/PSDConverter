@@ -127,6 +127,7 @@ def get_artboard_info(psd):
                     }
                     if sub_layer.kind == 'type':
                         sub_layer_info.update({
+                            'text': sub_layer.text,
                             'opacity': round(sub_layer.opacity * 100/255),
                             'style_sheet': sub_layer.engine_dict.get('StyleRun', []),
                             'font_list': sub_layer.resource_dict.get('FontSet', []),
@@ -147,28 +148,25 @@ def get_artboard_info(psd):
 
 def get_layer_effects_info(layer):
     effects_info = []
-    for effect in layer.effects:
-        if isinstance(effect, Stroke):
-            stroke_info = {
-                'type': 'Stroke',
-                'color': effect.color,
-                'size': effect.size,
-                'opacity': effect.opacity
-            }
-            effects_info.append(stroke_info)
-            logging.debug(f"Found Stroke effect: {stroke_info}")
-        elif isinstance(effect, DropShadow):
-            shadow_info = {
-                'type': 'Drop Shadow',
-                'color': effect.color,
-                'size': effect.size,
-                'opacity': effect.opacity,
-                'angle': effect.angle,
-                'distance': effect.distance
-            }
-            effects_info.append(shadow_info)
-            logging.debug(f"Found Drop Shadow effect: {shadow_info}")
-        # Add more conditions for other layer effects if needed
+    if layer.kind == 'type':  # Check if layer is text
+        for effect in layer.effects:
+            # Check for common effect types
+            if isinstance(effect, (Stroke, DropShadow)):
+                effect_info = {
+                    'type': type(effect).__name__,  # Use type name for clarity
+                    'color': effect.color,
+                    'size': effect.size,
+                    'opacity': effect.opacity
+                }
+                # Add specific properties for Drop Shadow
+                if isinstance(effect, DropShadow):
+                    effect_info.update({
+                        'angle': effect.angle,
+                        'distance': effect.distance
+                    })
+                effects_info.append(effect_info)
+                logging.debug(f"Found {effect_info['type']} effect: {effect_info}")
+        # Add more conditions for other effect types here if needed for text layers
     return effects_info
 
 def export_sub_layer_as_png(sub_layer, artboard_name, sub_layer_info):
@@ -230,6 +228,7 @@ def main():
 
                         if sub_layer_info['kind'] == 'type':
                             # Display additional information for type layers
+                            st.write(f"  Text: {sub_layer_info['text']}")
                             st.write(f"  Opacity: {sub_layer_info['opacity']}")
                             st.write(f"  Style Sheet: {sub_layer_info['style_sheet']}")
                             st.write(f"  Font List: {sub_layer_info['font_list']}")
