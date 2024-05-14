@@ -148,25 +148,26 @@ def get_artboard_info(psd):
 
 def get_layer_effects_info(layer):
     effects_info = []
-    if layer.kind == 'type':  # Check if layer is text
-        for effect in layer.effects:
-            # Check for common effect types
-            if isinstance(effect, (Stroke, DropShadow)):
-                effect_info = {
-                    'type': type(effect).__name__,  # Use type name for clarity
-                    'color': effect.color,
-                    'size': effect.size,
-                    'opacity': effect.opacity
-                }
-                # Add specific properties for Drop Shadow
-                if isinstance(effect, DropShadow):
-                    effect_info.update({
-                        'angle': effect.angle,
-                        'distance': effect.distance
-                    })
-                effects_info.append(effect_info)
-                logging.debug(f"Found {effect_info['type']} effect: {effect_info}")
-        # Add more conditions for other effect types here if needed for text layers
+    for effect in layer.effects:
+        if isinstance(effect, Stroke):
+            stroke_info = {
+                'type': 'Stroke',
+                'color': effect.color,
+                'size': effect.size,
+                'opacity': effect.opacity
+            }
+            effects_info.append(stroke_info)
+        elif isinstance(effect, DropShadow):
+            shadow_info = {
+                'type': 'Drop Shadow',
+                'color': effect.color,
+                'size': effect.size,
+                'opacity': effect.opacity,
+                'angle': effect.angle,
+                'distance': effect.distance
+            }
+            effects_info.append(shadow_info)
+        # Add more conditions for other layer effects if needed
     return effects_info
 
 def export_sub_layer_as_png(sub_layer, artboard_name, sub_layer_info):
@@ -232,7 +233,6 @@ def main():
                             st.write(f"  Opacity: {sub_layer_info['opacity']}")
                             st.write(f"  Style Sheet: {sub_layer_info['style_sheet']}")
                             st.write(f"  Font List: {sub_layer_info['font_list']}")
-                        else:
                             # Get layer effects information for non-type layers
                             effects_info = get_layer_effects_info(sub_layer)
                             # Display layer effects information
@@ -273,13 +273,14 @@ def main():
                     st.write(f"  Width: {layer['width']}")
                     st.write(f"  Height: {layer['height']}")
                 st.write(f"Kind: {layer['kind']}")
+                st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
+                st.write(f"Order: {layer['order']}")
                 if layer['kind'] == 'type':
                     st.write(f"Text: {layer['text']}")
                     st.write(f"StyleRun: {layer['style_sheet']}")
                     st.write(f"Font List: {layer['font_list']}")   
-                    st.write(f"Opacity: {layer['opacity']}")      
-                st.write(f"Blending Mode: {layer.get('blend_mode', 'Normal')}")
-                st.write(f"Order: {layer['order']}")
+                    st.write(f"Opacity: {layer['opacity']}")   
+                    # Get and display effects information for text layers only
                 st.write("")
 
 if __name__ == "__main__":
