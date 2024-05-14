@@ -98,6 +98,7 @@ def get_artboard_info(psd):
                     }
                     if sub_layer.kind == 'type':
                         sub_layer_info.update({
+                            'text': sub_layer.text,
                             'opacity': sub_layer.opacity,
                             'style_sheet': sub_layer.engine_dict.get('StyleRun', []),
                             'font_list': sub_layer.resource_dict.get('FontSet', []),
@@ -199,6 +200,7 @@ def main():
 
                         if sub_layer_info['kind'] == 'type':
                             # Display additional information for type layers
+                            st.write(f"  Text: {sub_layer_info['text']}")                            
                             st.write(f"  Opacity: {sub_layer_info['opacity']}")
                             st.write(f"  Style Sheet: {sub_layer_info['style_sheet']}")
                             st.write(f"  Font List: {sub_layer_info['font_list']}")
